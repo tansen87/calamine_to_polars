@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{error::Error, fmt::Display, fs::File, io::BufReader, path::Path};
 
 use calamine::{CellType, Data, DataType, Error as CalamineError, Range, Reader, Xlsx};
@@ -57,14 +58,25 @@ where
     fn to_frame_all_str(&self) -> Result<DataFrame, Box<dyn Error>> {
         let mut columns = Vec::new();
 
-        // Headers
-        let headers: Vec<String> = self
-            .rows()
-            .next()
-            .ok_or("No data")?
-            .iter()
-            .map(|cell| cell.to_string())
-            .collect();
+        // iterating and writing headers or duplicate headers
+        let mut header_counts = HashMap::<String, usize>::new();
+        let headers: Vec<String> = match self.rows().next() {
+            Some(first_row) => first_row
+                .iter()
+                .map(|cell| {
+                    let cell_str = cell.to_string();
+                    let count = header_counts.entry(cell_str.clone()).or_insert(0);
+                    let current_count = *count;
+                    *count += 1;
+                    if current_count > 0 {
+                        format!("{}_duplicated_{}", cell_str, current_count - 1)
+                    } else {
+                        cell_str
+                    }
+                })
+                .collect(),
+            None => return Err("No data".into()),
+        };
 
         // Vec<String> for each column
         for _ in 0..headers.len() {
