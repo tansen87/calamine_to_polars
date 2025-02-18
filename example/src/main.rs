@@ -29,6 +29,7 @@ fn test_df() -> Result<(), Box<dyn Error>> {
 
     // Before convenient casting
     println!("{:#?}", df);
+    println!("{:#?}", df["수량"]);
 
     df = df.with_types(&[
         // Change column name to match yours
@@ -38,6 +39,6 @@ fn test_df() -> Result<(), Box<dyn Error>> {
     ])?;
 
     // After convenient casting
-    println!("{:#?}", df);
+    println!("{:#?}", df["수량"]);
     Ok(())
 }
